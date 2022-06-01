@@ -68,7 +68,13 @@ data:
     {{- if .Values.externalAccess.enabled }}
     {{- if eq .Values.externalAccess.service.type "LoadBalancer" }}
     {{- if .Values.externalAccess.autoDiscovery.enabled }}
+    {{- if .Values.externalAccess.service.domain }}
+    ID="${MY_POD_NAME#"{{ $fullname }}-"}"
+    export MONGODB_ADVERTISED_HOSTNAME={{ .Values.externalAccess.service.domain }}
+    export MONGODB_ADVERTISED_PORT_NUMBER=$(echo '{{ .Values.externalAccess.service.portDomain }}' | tr -d '[]' | cut -d ' ' -f "$(($ID + 1))")
+    {{- else }}
     export MONGODB_ADVERTISED_HOSTNAME="$(<${SHARED_FILE})"
+    {{- end }}
     {{- else }}
     ID="${MY_POD_NAME#"{{ $fullname }}-"}"
     export MONGODB_ADVERTISED_HOSTNAME=$(echo '{{ .Values.externalAccess.service.loadBalancerIPs }}' | tr -d '[]' | cut -d ' ' -f "$(($ID + 1))")
@@ -214,11 +220,11 @@ data:
 
     SLEEP_PERIOD=10
 
-    {{- if and .Values.auth.enabled .Values.auth.rootPassword }}
-    usernameAndPassword="-u root -p ${MONGODB_ROOT_PASSWORD}"
-    {{- else }}
-    usernameAndPassword=""
-    {{- end }}
+    if [[ "${MONGODB_ROOT_PASSWORD}" ]]; then
+      usernameAndPassword="-u root -p ${MONGODB_ROOT_PASSWORD}"
+    else
+      usernameAndPassword=""
+    fi
 
     # load Values.replicaSetConfigurationSettings.configuration into associtive array which makes iterating and string manipulation easy
     declare -A desiredRsConf
