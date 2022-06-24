@@ -70,7 +70,7 @@ data:
     {{- if .Values.externalAccess.autoDiscovery.enabled }}
     {{- if .Values.externalAccess.service.domain }}
     ID="${MY_POD_NAME#"{{ $fullname }}-"}"
-    export MONGODB_ADVERTISED_HOSTNAME={{ .Values.externalAccess.service.domain }}
+    export MONGODB_ADVERTISED_HOSTNAME=$(echo '{{ .Values.externalAccess.service.domain }}' | tr -d '[]' | cut -d ' ' -f "$(($ID + 1))")
     export MONGODB_ADVERTISED_PORT_NUMBER=$(echo '{{ .Values.externalAccess.service.portDomain }}' | tr -d '[]' | cut -d ' ' -f "$(($ID + 1))")
     {{- else }}
     export MONGODB_ADVERTISED_HOSTNAME="$(<${SHARED_FILE})"
