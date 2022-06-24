@@ -111,6 +111,8 @@ Get the replication-password key.
     {{- else -}}
         {{- "replication-password" -}}
     {{- end -}}
+{{- else -}}
+    {{- "replication-password" -}}
 {{- end -}}
 {{- end -}}
 
@@ -249,6 +251,17 @@ Get the initialization scripts ConfigMap name.
     {{- printf "%s" (tpl .Values.primary.initdb.scriptsConfigMap $) -}}
 {{- else -}}
     {{- printf "%s-init-scripts" (include "postgresql.primary.fullname" .) -}}
+{{- end -}}
+{{- end -}}
+
+{/*
+Return true if TLS is enabled for LDAP connection
+*/}}
+{{- define "postgresql.ldap.tls.enabled" -}}
+{{- if and (kindIs "string" .Values.ldap.tls) (not (empty .Values.ldap.tls)) }}
+    {{- true -}}
+{{- else if and (kindIs "map" .Values.ldap.tls) .Values.ldap.tls.enabled }}
+    {{- true -}}
 {{- end -}}
 {{- end -}}
 
